@@ -1,0 +1,823 @@
+import random
+import time
+from classes import classes 
+
+     
+def intro():
+    print("\n" + "=" * 40)
+    print("Welcome Ashen One")  
+    time.sleep(2)
+    print("The bells toll call for you to link the flame.")
+    time.sleep(2)
+    print("=" * 40 + "\n")
+
+
+rooms = {
+    "Cemetery of Ash": {
+        "description": "Old cemetery used for the unkindled.",
+        "exit": {"north": "Undead Cemetery"},
+        "encounter": None,
+    },
+    "Undead Cemetery": {
+        "description": "Old abandoned cemetery.",
+        "exit": {"south": "Cemetery of Ash", "north": "Undead Cemetery Bonfire"},
+        "encounter": "Hollow",
+    },
+    "Undead Cemetery Bonfire": {
+        "description": "A old burning bonfire. You feel a sense of peace.",
+        "exit": {"south": "Undead Cemetery", "north": "Iudex Arena"},
+        "encounter": None,
+        "bonfire": True,
+    },
+    "Iudex Arena": {
+        "description": "An old battle-torn arena.",
+        "exit": {"south": "Undead Cemetery Bonfire" , "north":"Firelink Shrine"},
+        "encounter": "Iudex Gundyr",
+    },
+    "Firelink Shrine": {
+        "description": "A grand circular chamber. 5 Grand Thrones sit in display.",
+        "exit": {"south": "Iudex Arena","north": "Highwalls of lothric"},
+        "encounter": None,
+        "bonfire": True,
+        "level_npc": "Firekeeper",
+        "shop_npc": "Shrine Handmaid",
+    },
+    "Highwalls of lothric": {
+        "description":"Lothrics grand walls. Two areas lay to your left and right",
+        "exit": {"west":"Lothrics West Wall" ,"east":"Lothrics East Wall" },
+        "bonfire":True,
+        "encounter": None,
+
+    },
+    "Lothrics West Wall":{
+        "description":"Many hollow lay here in prayer.",
+        "exit": {"east":"Highwalls of Lothric", "west":"Lower West Wall" },
+        "encounter":"Hollow",
+        "encounter":"Hollow",
+        "encounter":"Hollow",
+        "encounter":"Hollow",
+        "encounter":"Hollow",
+    },
+    "Lothrics East Wall":{
+        "description":"Many hounds are here. Theres a strange Hollow to the East",
+        "exit":{"west":"Highwalls of lothric","east":"Strange Hollow"},
+        "encounter":"Starved Hound",
+        "encounter":"Starved Hound",
+        "encounter":"Starved Hound",
+        "encounter":"Starved Hound",
+    },
+    "Strange Hollow":{
+        "description":"Just a strange hollow",
+        "exit":{"west":"Lothrics East Wall"},
+        "encounter":"Puss of Man"
+    },
+    "Lower West Wall":{
+        "description":"Theres stairs leading back up to the upper walls up ahead.A wyvern imposes himself in the distance.",
+        "exit":{"east":"Lothrics West Wall","west":"West Wall Stairs"},
+        "encounter":None
+    },
+    "West Wall Stairs":{
+        "description":"Stairs leading to the upper walls. It's usually very 'crowded'.",
+        "exit":{"east":"Lower West Wall","west":"Upper West Walls"},
+        "encounter":"Hollow",
+        "encounter":"Hollow",
+        "encounter":"Hollow",
+        "encounter":"Hollow",
+        "encounter":"Hollow",
+    },
+    "Upper West Walls":{
+        "description":"A Lothric knight stands in the distance",
+        "exit":{"east":"West Wall Stairs", "west":"West Wall Tower" },
+        "encounter": None,
+    },
+    "West Wall Tower":{
+        "description":"Tower on the west wall of Lothric. Many knights rest here",
+        "exit":{"east":"Upper West Walls","west":"lothric Rooftops","north": "Tower on the Wall Bonfire" },
+        "encounter":"Lothric Knight Sword",
+        "encounter":"Lothric Knight Spear",
+    },
+    "Tower on the Wall Bonfire":{
+        "description":"A bonfire lay here. You feel a sense of peace here",
+        "exit":{"south":"West Wall Tower"},
+        "bonfire":True,
+        "encounter": None,
+    },
+    "lothric Rooftops":{
+        "description":"Rooftops of lothric theres a plaza down below. to the north theres a hollow praying.",
+        "exit":{"east":"West Wall Tower","west":"Praying Hollow","south":"Random Blokes Balcony"},
+        "encounter":"Hollow"
+    },
+    "Praying Hollow":{
+        "description":"Just a random Hollow",
+        "exit":{"east":"lothric Rooftops"},
+        "encounter":"Puss of Man"
+    },
+    "Random Blokes Balcony":{
+        "description":"Just someones balcony.A big enemy lie in the plaza below",
+        "exit":{"north":"lothric Rooftops", "south":"Lothric Plaza","west":"Random Blokes Shop"},
+        "encounter": None,
+    },
+    "Random Blokes Shop":{
+        "description":"Just someones shop.",
+        "exit":{"east":"Random Blokes Balcony"},
+        "encounter":"Lothric Knight Spear"
+    },
+    "Lothric Plaza":{
+        "description":"Big plaza in lothric. The bodies of many knights decorate it.",
+        "exit":{"east":"Grand Stairway", "north":"Random Blokes Balcony", "west":"Lothric Plaza West"},
+        "encounter": None,
+    },
+    "Lothric Plaza Westt":{
+        "description":"East of Lothric plaza",
+        "exit":{"east":"Lothric Plaza"},
+        "encounter":"Winged Knight",
+    },
+    "Grand Stairway":{
+        "description":"Grand stairway leading into lothric.",
+        "exit":{"west":"Lothric Plaza","north":"Cathedral of High Preistess Emma","south":"Entrance to Lothric"},
+        "encounter": None,
+    },
+    "Cathedral of High Preistess Emma":{
+        "description":"Cathedral where High Priestess Emma resides.",
+        "exit":{"south":"Grand Stairway"},
+        "encounter": None,
+    },
+    "Entrance to Lothric":{
+        "description":{"At the end of the wall lies the way to leave Lothric."},
+        "exit":{"north":"Grand Stairway","south":"Foot of the Wall Bonfire","west":"Vordt of the Boreal Valley Bonfire"},
+        "encounter":"Vordt of the Boreal Valley"
+    },
+    "Vordt of the Boreal Valley Bonfire":{
+        "description":"Bonfire where the once great Vordt of the Boreal Valley stood.",
+        "exit":{"east":"Entrance to Lothric"},
+        "encounter":None,
+        "bonfire":True
+    },
+    "Foot of the Wall Bonfire":{
+        "description":"Old dilapidated part of the lothric wall.",
+        "exit":{"south":"Undead Settlement Gate"},
+        "bonfire":True,
+        "encounter":None
+    },
+}
+
+
+class Player:
+                def __init__(self, name="Ashen One", hp=100, max_hp=100, attack_power=15):
+                    self.name = name
+                    self.hp = hp
+                    self.max_hp = max_hp
+                    self.attack_power = attack_power
+                    self.level = 1
+                    self.estus_flask = 3
+                    self.max_estus_flask = 3
+                    self.stamina = 100
+                    self.max_stamina = 100
+                    self.stamina_recovery = 15
+                    self.souls = 0
+
+                def is_alive(self):
+                    return self.hp > 0
+
+                def take_damage(self, damage):
+                    self.hp = max(0, self.hp - damage)
+
+                def recover_stamina(self, amount=None):
+                    if amount is None:
+                        amount = self.stamina_recovery
+                    self.stamina = min(self.max_stamina, self.stamina + amount)
+
+                def spend_stamina(self, amount):
+                    if self.stamina < amount:
+                        return False
+                    self.stamina -= amount
+                    return True\
+                
+class Enemy:
+                def __init__(self, name="Hollow", hp=40, max_hp=40, attack_power=5):
+                    self.name = name
+                    self.hp = hp
+                    self.max_hp = max_hp
+                    self.attack_power = attack_power
+
+                def __init__(self, name="Starved Hound", hp=25, max_hp=25, attack_power=10):
+                    self.name = name
+                    self.hp = hp
+                    self.max_hp = max_hp
+                    self.attack_power = attack_power
+
+                def __init__(self, name="Lothric Knight Sword", hp=85, max_hp=85, attack_power=25):
+                    self.name = name
+                    self.hp = hp
+                    self.max_hp = max_hp
+                    self.attack_power = attack_power
+
+                def __init__(self, name="Lothric Knight Spear", hp=75, max_hp=75, attack_power=30):
+                    self.name = name
+                    self.hp = hp
+                    self.max_hp = max_hp
+                    self.attack_power = attack_power
+
+                def __init__(self, name="Puss of Man", hp=135, max_hp=135, attack_power=55):
+                    self.name = name
+                    self.hp = hp
+                    self.max_hp = max_hp
+                    self.attack_power = attack_power
+
+                def __init__(self, name="Winged Knight", hp=100, max_hp=100, attack_power=40):
+                    self.name = name
+                    self.hp = hp
+                    self.max_hp = max_hp
+                    self.attack_power = attack_power
+
+                def is_alive(self):
+                    return self.hp > 0
+
+                def take_damage(self, damage):
+                    self.hp = max(0, self.hp - damage)
+
+class Boss(Enemy):
+                def __init__(self, name="Iudex Gundyr", hp=120, max_hp=120, attack_power=15, heavy_attack_power=20):
+                    super().__init__(name=name, hp=hp, max_hp=max_hp, attack_power=attack_power)
+                    self.heavy_attack_power = heavy_attack_power
+                    self.phase = 1
+
+                def update_phase(self):
+                    if self.hp <= self.max_hp // 2 and self.phase == 1:
+                        self.phase = 2
+                        print(f"\n{self.name} enters a more aggressive second phase!\n")
+
+                def choose_attack_damage(self):
+                    self.update_phase()
+                    if self.phase == 1:
+                        return random.choice([self.attack_power, self.attack_power + 4])
+                    return random.choice([self.attack_power + 6, self.heavy_attack_power, self.heavy_attack_power + 4])
+
+class Second(Enemy):
+                def __init__(self, name="Vordt of the Boreal Valley", hp=155, max_hp=155, attack_power=25, heavy_attack_power=40):
+                    super().__init__(name=name, hp=hp, max_hp=max_hp, attack_power=attack_power)
+                    self.heavy_attack_power = heavy_attack_power
+                    self.phase = 1
+
+                def update_phase(self):
+                    if self.hp <= self.max_hp // 2 and self.phase == 1:
+                        self.phase = 2
+                        print(f"\n{self.name} enters a more aggressive second phase!\n")
+
+                def choose_attack_damage(self):
+                    self.update_phase()
+                    if self.phase == 1:
+                        return random.choice([self.attack_power, self.attack_power + 6])
+                    return random.choice([self.attack_power + 8, self.heavy_attack_power, self.heavy_attack_power + 8])
+                  
+
+class Third(Enemy):     
+                def __init__(self, name="Curse-Rotted Greatwood", hp=1000, max_hp=1000, attack_power=40, heavy_attack_power=40):
+                    super().__init__(name=name, hp=hp, max_hp=max_hp, attack_power=attack_power)
+                    self.heavy_attack_power = heavy_attack_power
+                    self.phase = 1
+
+                def update_phase(self):
+                    if self.hp <= self.max_hp // 2 and self.phase == 1:
+                        self.phase = 2
+                        print(f"\n{self.name} enters a more aggressive second phase!\n")
+
+                def choose_attack_damage(self):
+                    self.update_phase()
+                    if self.phase == 1:
+                        return random.choice([self.attack_power, self.attack_power + 6])
+                    return random.choice([self.attack_power + 8, self.heavy_attack_power, self.heavy_attack_power + 8])
+
+player = Player()
+
+
+def heal_player(heal_amount):
+    player.hp = min(player.hp + heal_amount, player.max_hp)
+    print(f"{player.name} drank from their estus flask for {heal_amount} HP.")
+    print(f"Current Health: {player.hp}/{player.max_hp}")
+
+
+def format_bar(current, maximum, width=20):
+    filled = int((current / maximum) * width) if maximum else 0
+    filled = max(0, min(width, filled))
+    empty = width - filled
+    return f"[{('#' * filled)}{('-' * empty)}] {current}/{maximum}"
+
+
+def restore_player_resources():
+    player.hp = player.max_hp
+    player.estus_flask = player.max_estus_flask
+    player.stamina = player.max_stamina
+ 
+
+def add_souls(amount):
+    player.souls += amount
+    print(f"You collected {amount} souls.")
+    print(f"Souls: {player.souls}")
+
+
+def level_up_cost():
+    return 100 + ((player.level - 1) * 50)
+
+
+def level_up_at_firelink():
+    if current_location != "Firelink Shrine":
+        print("You can only level up at Firelink Shrine.")
+        return
+
+    cost = level_up_cost()
+    print(f"\n== {rooms[current_location]['level_npc']} ==")
+    print("Touch the darkness within me. Take nourishment from these sovereignless souls.")
+    print("\n== Level Up ==")
+    print(f"Level: {player.level}")
+    print(f"Souls: {player.souls} / {cost}")
+    print("1) Vitality (+20 max HP)")
+    print("2) Endurance (+10 max stamina)")
+    print("3) Strength (+5 attack)")
+    print("4) Recovery (+5 stamina recovery)")
+    print("0) Cancel")
+
+    choice = input("Choose level up: ").strip().lower()
+    if choice in ("0", "cancel"):
+        return
+    if player.souls < cost:
+        print("Not enough souls to level up.")
+        return
+
+    upgrades = {
+        "1": "vitality",
+        "vitality": "vitality",
+        "2": "endurance",
+        "endurance": "endurance",
+        "3": "strength",
+        "strength": "strength",
+        "4": "recovery",
+        "recovery": "recovery",
+    }
+    upgrade = upgrades.get(choice)
+    if upgrade is None:
+        print("Invalid choice.")
+        return
+
+    player.souls -= cost
+    player.level += 1
+
+    if upgrade == "vitality":
+        player.max_hp += 20
+        player.hp = player.max_hp
+        print("Vitality increased.")
+    elif upgrade == "endurance":
+        player.max_stamina += 10
+        player.stamina = player.max_stamina
+        print("Endurance increased.")
+    elif upgrade == "strength":
+        player.attack_power += 5
+        print("Strength increased.")
+    elif upgrade == "recovery":
+        player.stamina_recovery += 5
+        print("Stamina recovery increased.")
+
+    print(f"You are now level {player.level}.")
+    
+
+def soul_shop_at_firelink():
+    if current_location != "Firelink Shrine":
+        print("You can only use the soul shop at Firelink Shrine.")
+        return
+
+    print(f"\n== {rooms[current_location]['shop_npc']} ==")
+    print("The Shrine Handmaid has wares for souls.")
+    print("\n== Soul Shop ==")
+    print(f"Souls: {player.souls}")
+    print("1) Health Ring (+10 max Health) - 150 souls")
+    print("0) Cancel")
+
+    choice = input("Choose item: ").strip().lower()
+    if choice in ("0", "cancel"):
+        return
+
+    shop_items = {
+        "1": ("health ring", 150),
+        "health ring": ("health ring", 150),
+    }
+
+    item = shop_items.get(choice)
+    if item is None:
+        print("Invalid choice.")
+        return
+
+    item_name, cost = item
+    if player.souls < cost:
+        print("Not enough souls.")
+        return
+
+    player.souls -= cost
+
+    if item_name == "health ring":
+        player.max_hp += 10
+        player.hp = player.max_hp
+        print("Your vitality increases.")
+    print(f"Souls remaining: {player.souls}")
+
+
+def estus_flask():
+    if player.estus_flask > 0:
+        player.estus_flask -= 1
+        heal_player(25)
+    else:
+        print("No more estus left!")
+
+
+def spend_stamina_for_action(action_name):
+    cost = stamina_costs.get(action_name, 0)
+    if cost == 0:
+        return True 
+    if not player.spend_stamina(cost):
+        print(f"Not enough stamina for {action_name.replace('_', ' ')}.")
+        return False
+    return True
+ 
+
+def discover_current_bonfire():
+    if rooms[current_location].get("bonfire"):
+        discovered_bonfires.add(current_location)
+
+ 
+action_map = {
+    "1": "attack",
+    "2": "roll",
+    "3": "block",
+    "4": "heavy_attack",
+    "5": "estus_flask",
+    "0": "skip",
+    "attack": "attack",
+    "roll": "roll",
+    "block": "block",
+    "heavy": "heavy_attack",
+    "heavy attack": "heavy_attack",
+    "estus": "estus_flask",
+    "use estus": "estus_flask",
+    "skip": "skip",
+}
+
+
+stamina_costs = {
+    "attack": 20,
+    "roll": 10,
+    "block": 0,
+    "heavy_attack": 30,
+    "estus_flask": 0,
+    "skip": 0,
+}
+
+
+soul_rewards = {
+    "Hollow": 5,
+    "Iudex Gundyr": 500,
+    "Vordt of the Boreal Valley":500,
+    "Curse-Rotted Greatwood":1000,
+    "Lothric Knight 'Sword'":250,
+    "Lothric Knight 'Spear'":250,
+    "Puss of Man":350,
+    "Winged Knight":150,
+    "Starved hound":10,
+}
+
+
+def BSRS():
+    current_location = "Cemetery of Ash"
+    defeated_enemies = set()
+    defeated_boss_rooms = set()
+    last_bonfire = "Cemetery of Ash"
+    dropped_souls = 0
+    soul_drop_location = None
+    discovered_bonfires = {"Cemetery of Ash"}
+    return current_location,defeated_enemies,defeated_boss_rooms,last_bonfire,dropped_souls,soul_drop_location,discovered_bonfires
+
+
+def reset_game_state():
+    global player, current_location, defeated_enemies, defeated_boss_rooms, last_bonfire, dropped_souls, soul_drop_location, discovered_bonfires
+    player = Player()
+    current_location = "Cemetery of Ash"
+    defeated_enemies = set()
+    defeated_boss_rooms = set()
+    last_bonfire = "Cemetery of Ash"
+    dropped_souls = 0
+    soul_drop_location = None
+    discovered_bonfires = {"Cemetery of Ash"}
+    intro()
+
+
+def death_screen():
+    print("\n====================")
+    print("       YOU DIED")
+    print("====================")
+    print("1) Respawn at bonfire")
+    print("2) Restart")
+    print("3) Quit")
+
+    while True:
+        choice = input("Choose action: ").strip().lower()
+        if choice in ("1", "respawn"):
+            return "respawn"
+        if choice in ("2", "restart", "r"):
+            return "restart"
+        if choice in ("3", "quit", "q"):
+            return "quit"
+        print("Invalid choice.")
+
+
+def drop_souls_on_death():
+    global dropped_souls, soul_drop_location
+    dropped_souls = player.souls
+    soul_drop_location = current_location
+    player.souls = 0
+    print(f"\nYou lost your souls... {dropped_souls} souls are left at {soul_drop_location}.")
+
+
+def recover_dropped_souls():
+    global dropped_souls, soul_drop_location
+    if dropped_souls > 0 and soul_drop_location == current_location:
+        print(f"You recovered {dropped_souls} lost souls.")
+        player.souls += dropped_souls
+        dropped_souls = 0
+        soul_drop_location = None
+
+
+def display_location():
+    location = rooms[current_location]
+    print(f"\n== {current_location} ==")
+    print(location["description"])
+    print(f"Level: {player.level} | Souls: {player.souls}")
+    print(f"Stamina: {format_bar(player.stamina, player.max_stamina)}")
+    if dropped_souls > 0 and soul_drop_location == current_location:
+        print(f"Bloodstain: {dropped_souls} souls")
+    if location.get("bonfire"):
+        print("[Bonfire Lit]")
+    if current_location == "Firelink Shrine":
+        print(f"NPCs: {location['level_npc']}, {location['shop_npc']}")
+        print("Talk to the Firekeeper to level up.")
+        print("Talk to the Shrine Handmaid to shop.")
+    exits = ", ".join(location["exit"].keys())
+    print(f"Exits: {exits}")
+
+
+def get_enemy_for_room(room_name):
+    encounter = rooms[room_name]["encounter"]
+    if encounter == "Hollow":
+        return Enemy("Hollow", 40, 40, 5)
+    if encounter == "Starved Hound":
+        return Enemy("Starved Hound", 25, 25, 10)
+    if encounter == "Lothric Knight Sword":
+        return Enemy("Lothric Knight'Sword'",85,85,25)
+    if encounter == "Lothric Knight Spear":
+        return Enemy("Lothric Knight Spear",75,75,30)
+    if encounter == "Puss of Man":
+        return Enemy("Puss of Man",145,145,55)
+    if encounter == "Winged Knight":
+        return Enemy("Winged Knight",100,100,40)
+    if encounter == "Iudex Gundyr":
+        return Boss()
+    if encounter == "Vordt of the Boreal Valley":
+        return Second()
+    if encounter == "Curse-Rotted Greatwood":
+        return Third()
+
+
+def reward_souls_for_enemy(opponent):
+    reward = soul_rewards.get(opponent.name, 0)
+    if reward > 0:
+        add_souls(reward)
+
+
+def start_combat(opponent):
+    print(f"\nA {opponent.name} approaches!\n")
+    defending = False
+
+    while player.is_alive() and opponent.is_alive():
+        print(
+            f"{player.name} (Lv {player.level}): {player.hp}/{player.max_hp} HP | "
+            f"Stamina: {player.stamina}/{player.max_stamina} | "
+            f"Estus: {player.estus_flask}/{player.max_estus_flask} | "
+            f"Souls: {player.souls}"
+        )
+        print(f"Stamina Bar: {format_bar(player.stamina, player.max_stamina)}")
+        print(f"{opponent.name}: {opponent.hp}/{opponent.max_hp} HP")
+        print("1) Attack  2) Heavy Attack  3) Block  4) Roll  5) Estus  0) Skip")
+        choice = input("Choose action: ").strip().lower()
+
+        if choice in ("1", "attack"):
+            if not spend_stamina_for_action("attack"):
+                continue
+            damage = player.attack_power
+            opponent.take_damage(damage)
+            print(f"You deal {damage} damage.")
+        elif choice in ("2", "heavy attack", "heavy"):
+            if not spend_stamina_for_action("heavy_attack"):
+                continue
+            damage = player.attack_power + (15 if isinstance(opponent, Boss) else 10)
+            opponent.take_damage(damage)
+            print(f"You unleash a heavy attack for {damage} damage.")
+        elif choice in ("3", "block"):
+            if not spend_stamina_for_action("block"):
+                continue
+            defending = True
+            print("You raise your shield.")
+            player.recover_stamina(20)
+            print(f"You steady your stance and recover some stamina. Stamina: {player.stamina}/{player.max_stamina}")
+        elif choice in ("4", "roll"):
+            if not spend_stamina_for_action("roll"):
+                continue
+            defending = True
+            print("You roll away from danger.")
+        elif choice in ("5", "estus", "use estus"):
+            estus_flask()
+        elif choice in ("0", "skip"):
+            print("You hesitate.")
+        else:
+            print("Invalid choice.")
+            continue
+
+        if not opponent.is_alive():
+            print(f"{opponent.name} has been defeated!\n")
+            reward_souls_for_enemy(opponent)
+            return "win"
+
+        enemy_damage = opponent.choose_attack_damage() if isinstance(opponent, Boss) else opponent.attack_power
+        if defending:
+            enemy_damage = max(0, enemy_damage - 10)
+            defending = False
+
+        player.take_damage(enemy_damage)
+        print(f"{opponent.name} hits you for {enemy_damage} damage.")
+
+        player.recover_stamina()
+
+    if not player.is_alive():
+        drop_souls_on_death()
+        return death_screen()
+
+    return "win"
+
+
+def rest_at_bonfire():
+    global defeated_enemies, last_bonfire
+
+    if not rooms[current_location].get("bonfire"):
+        print("You can only rest at a bonfire")
+        return
+
+    discover_current_bonfire()
+    restore_player_resources()
+    last_bonfire = current_location
+    defeated_enemies = set()
+    print("\nRest at Bonfire")
+    print("Health and estus restored.")
+    print("Stamina restored.")
+    print("The world stirs again. Enemies have returned.")
+
+
+def travel_between_bonfires():
+    global current_location, last_bonfire
+
+    if not rooms[current_location].get("bonfire"):
+        print("You can only fast travel from a bonfire.")
+        return
+
+    discover_current_bonfire()
+    available_bonfires = sorted(bonfire for bonfire in discovered_bonfires if bonfire != current_location)
+    if not available_bonfires:
+        print("No other bonfires have been discovered yet.")
+        return
+
+    print("\n== Fast Travel ==")
+    for index, bonfire in enumerate(available_bonfires, start=1):
+        print(f"{index}) {bonfire}")
+    print("0) Cancel")
+
+    choice = input("Choose bonfire: ").strip().lower()
+    if choice in ("0", "cancel"):
+        return
+
+    travel_map = {str(index): bonfire for index, bonfire in enumerate(available_bonfires, start=1)}
+    destination = travel_map.get(choice)
+    if destination is None:
+        print("Invalid choice.")
+        return
+
+    current_location = destination
+    last_bonfire = destination
+    restore_player_resources()
+    discover_current_bonfire()
+    print(f"\nYou travel to {destination}.")
+    print("Health, estus, and stamina restored.")
+
+
+def respawn_at_last_bonfire():
+    global current_location, defeated_enemies
+
+    restore_player_resources()
+    current_location = last_bonfire
+    discover_current_bonfire()
+    defeated_enemies = set()
+    print(f"\nYou awaken at the bonfire: {last_bonfire}")
+    print("Health, estus, and stamina restored.")
+
+
+def move_player(direction):
+    global current_location
+    exits = rooms[current_location]["exit"]
+    if direction not in exits:
+        print("You cannot go that way.")
+        return
+    current_location = exits[direction]
+
+
+def recover_stamina_after_turn():
+    player.recover_stamina(15)
+
+
+def get_exploration_prompt():
+    options = []
+    options.extend(rooms[current_location]["exit"].keys())
+    if rooms[current_location].get("bonfire"):
+        options.append("rest")
+        if len(discovered_bonfires) > 1:
+            options.append("travel")
+        if current_location == "Firelink Shrine":
+            options.extend(["level", "shop", "talk"])
+    options.append("quit")
+    return f"Choose action ({'/'.join(options)}): "
+
+
+def run_game():
+    reset_game_state()
+    respawn_at_last_bonfire()
+
+    while player.is_alive():
+        recover_dropped_souls()
+        discover_current_bonfire()
+        display_location()
+
+        if current_location not in defeated_enemies and current_location not in defeated_boss_rooms:
+            enemy = get_enemy_for_room(current_location)
+            if enemy is not None:
+                combat_result = start_combat(enemy)
+                if combat_result == "respawn":
+                    respawn_at_last_bonfire()
+                    continue
+                if combat_result == "restart":
+                    return "restart"
+                if combat_result == "quit":
+                    return "quit"
+                defeated_enemies.add(current_location)
+                if isinstance(enemy, Boss):
+                    defeated_boss_rooms.add(current_location)
+                    print("\nHEIR OF FIRE DESTROYED")
+                if isinstance(enemy, Second):
+                    print("\nHEIR OF FIRE DESTROYED")
+                    defeated_boss_rooms.add(current_location)
+                    return "quit"
+
+        choice = input(get_exploration_prompt()).strip().lower()
+        if choice == "quit":
+            print("Farewell, Ashen One")
+            return "quit"
+        if choice == "rest":
+            rest_at_bonfire()
+            recover_stamina_after_turn()
+            continue
+        if choice == "travel" and rooms[current_location].get("bonfire"):
+            travel_between_bonfires()
+            recover_stamina_after_turn()
+            continue
+        if choice == "level" and current_location == "Firelink Shrine":
+            level_up_at_firelink()
+            continue
+        if choice == "shop" and current_location == "Firelink Shrine":
+            soul_shop_at_firelink()
+            continue
+        if choice == "talk" and current_location == "Firelink Shrine":
+            print("Who do you want to speak with? (firekeeper/handmaid)")
+            npc_choice = input("Choose NPC: ").strip().lower()
+            if npc_choice in ("firekeeper", "1"):
+                level_up_at_firelink()
+            elif npc_choice in ("handmaid", "merchant", "2"):
+                soul_shop_at_firelink()
+            else:
+                print("You remain silent.")
+            continue
+        if choice in ("north", "south", "east", "west"):
+            move_player(choice)
+            recover_stamina_after_turn()
+            continue
+
+        print("Invalid choice.")
+
+    return "restart"
+                                       
+
+while True:
+    outcome = run_game()
+    if outcome != "restart":
+        break
