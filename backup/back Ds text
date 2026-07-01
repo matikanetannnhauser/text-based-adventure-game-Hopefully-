@@ -1,9 +1,7 @@
 import random
 import time
-from classes import classes 
 
-
-def intro():
+def intro(): 
     print("\n" + "=" * 40)
     print("Welcome Ashen One")  
     time.sleep(2)
@@ -11,7 +9,7 @@ def intro():
     time.sleep(2)
     print("=" * 40 + "\n")
 
-
+   
 rooms = {
     "Cemetery of Ash": {
         "description": "Old cemetery used for the unkindled.",
@@ -36,40 +34,33 @@ rooms = {
     },
     "Firelink Shrine": {
         "description": "A grand circular chamber. 5 Grand Thrones sit in display.",
-        "exit": {"south": "Iudex Arena","north": "Highwalls of lothric"},
+        "exit": {"south": "Iudex Arena","north": "Highwalls of Lothric"},
         "encounter": None,
         "bonfire": True,
         "level_npc": "Firekeeper",
         "shop_npc": "Shrine Handmaid",
     },
-    "Highwalls of lothric": {
+    "Highwalls of Lothric": {
         "description":"Lothrics grand walls. Two areas lay to your left and right",
         "exit": {"west":"Lothrics West Wall" ,"east":"Lothrics East Wall" },
         "bonfire":True,
         "encounter": None,
-
     },
     "Lothrics West Wall":{
         "description":"Many hollow lay here in prayer.",
         "exit": {"east":"Highwalls of Lothric", "west":"Lower West Wall" },
-        "encounter":"Hollow",
-        "encounter":"Hollow",
-        "encounter":"Hollow",
-        "encounter":"Hollow",
-        "encounter":"Hollow",
+        "encounters":["Hollow", "Hollow", "Hollow", "Hollow", "Hollow"],
     },
     "Lothrics East Wall":{
         "description":"Many hounds are here. Theres a strange Hollow to the East",
-        "exit":{"west":"Highwalls of lothric","east":"Strange Hollow"},
-        "encounter":"Starved Hound",
-        "encounter":"Starved Hound",
-        "encounter":"Starved Hound",
-        "encounter":"Starved Hound",
+        "exit":{"west":"Highwalls of Lothric","east":"Strange Hollow"},
+        "encounters":["Starved Hound", "Starved Hound", "Starved Hound", "Starved Hound"],
     },
     "Strange Hollow":{
         "description":"Just a strange hollow",
         "exit":{"west":"Lothrics East Wall"},
-        "encounter":"Puss of Man"
+        "encounter":"Puss of Man",
+        "items": ["Estus Shard"],
     },
     "Lower West Wall":{
         "description":"Theres stairs leading back up to the upper walls up ahead.A wyvern imposes himself in the distance.",
@@ -79,11 +70,7 @@ rooms = {
     "West Wall Stairs":{
         "description":"Stairs leading to the upper walls. It's usually very 'crowded'.",
         "exit":{"east":"Lower West Wall","west":"Upper West Walls"},
-        "encounter":"Hollow",
-        "encounter":"Hollow",
-        "encounter":"Hollow",
-        "encounter":"Hollow",
-        "encounter":"Hollow",
+        "encounters":["Hollow", "Hollow", "Hollow", "Hollow", "Hollow"],
     },
     "Upper West Walls":{
         "description":"A Lothric knight stands in the distance",
@@ -93,9 +80,9 @@ rooms = {
     "West Wall Tower":{
         "description":"Tower on the west wall of Lothric. Many knights rest here",
         "exit":{"east":"Upper West Walls","west":"lothric Rooftops","north": "Tower on the Wall Bonfire" },
-        "encounter":"Lothric Knight Sword",
-        "encounter":"Lothric Knight Spear",
-    },
+        "encounters":["Lothric Knight Sword", "Lothric Knight Spear"],
+        "items": ["Lothric Knight Sword"],
+    },  
     "Tower on the Wall Bonfire":{
         "description":"A bonfire lay here. You feel a sense of peace here",
         "exit":{"south":"West Wall Tower"},
@@ -105,7 +92,7 @@ rooms = {
     "lothric Rooftops":{
         "description":"Rooftops of lothric theres a plaza down below. to the north theres a hollow praying.",
         "exit":{"east":"West Wall Tower","west":"Praying Hollow","south":"Random Blokes Balcony"},
-        "encounter":"Hollow"
+        "encounter":["Hollow","Hollow","Hollow"]
     },
     "Praying Hollow":{
         "description":"Just a random Hollow",
@@ -120,7 +107,8 @@ rooms = {
     "Random Blokes Shop":{
         "description":"Just someones shop.",
         "exit":{"east":"Random Blokes Balcony"},
-        "encounter":"Lothric Knight Spear"
+        "encounter":"Lothric Knight Spear",
+        "items": ["Lothric Knight Spear"],
     },
     "Lothric Plaza":{
         "description":"Big plaza in lothric. The bodies of many knights decorate it.",
@@ -143,13 +131,30 @@ rooms = {
         "encounter": None,
     },
     "Entrance to Lothric":{
-        "description":{"At the end of the wall lies the way to leave Lothric."},
+        "description":"At the end of the wall lies the way to leave Lothric.",
         "exit":{"north":"Grand Stairway","south":"Lothric Exit","west":"Vordt of the Boreal Valley bonfire"},
-        "encounter":"Vordt of the Boreal Valley"
+        "encounter":"Vordt of the Boreal Valley",
     },
+    "Lothric Exit":{
+         "description":"At the end lies a big cliff",
+        "exit":{"South":"Foot of the Wall","North":"Entrance to Lothric"},
+        "encounter":None,
+        "bonfire":True,  
+    },
+    "Foot of the Wall":{
+        "description":"Bottom of lothrics great walls",
+        "exit":{"South":"Undead Settlement Entrance"},
+        "encounter":None,
+        "bonfire":"True",
+    },
+    "Undead Settlement Entrance": {
+        "description":"Entrance to Undead Settlement",
+        "exit":{"North":"Foot of the Wall","South":"Undead Settlement"},
+        "encounter":["Hollow","Starved Hound","Starved Hound","Starved Hound","Starved Hound"],
+    }              
 }
-
-
+                   
+                                                           
 class Player:
                 def __init__(self, name="Ashen One", hp=100, max_hp=100, attack_power=15):
                     self.name = name
@@ -163,6 +168,9 @@ class Player:
                     self.max_stamina = 100
                     self.stamina_recovery = 15
                     self.souls = 0
+                    self.inventory = []
+                    self.equipped_weapon = "Basic Sword"
+                    self.weapon_attack = 0
 
                 def is_alive(self):
                     return self.hp > 0
@@ -179,9 +187,26 @@ class Player:
                     if self.stamina < amount:
                         return False
                     self.stamina -= amount
-                    return True\
+                    return True
+
+                def total_attack_power(self):
+                    return self.attack_power + self.weapon_attack
+
+                def equip_weapon(self, weapon_name, weapon_stats):
+                    self.equipped_weapon = weapon_name
+                    self.weapon_attack = weapon_stats.get(weapon_name, 0)
+
+                def add_to_inventory(self, item_name):
+                    self.inventory.append(item_name)
+
+                def remove_from_inventory(self, item_name):
+                    for item in self.inventory:
+                        if item.lower() == item_name.lower():
+                            self.inventory.remove(item)
+                            return item
+                    return None
                 
-class Enemy:
+class Enemy: 
                 def __init__(self, name="Hollow", hp=40, max_hp=40, attack_power=5):
                     self.name = name
                     self.hp = hp
@@ -199,7 +224,7 @@ class Enemy:
                     self.hp = hp
                     self.max_hp = max_hp
                     self.attack_power = attack_power
-
+   
                 def __init__(self, name="Lothric Knight Spear", hp=75, max_hp=75, attack_power=30):
                     self.name = name
                     self.hp = hp
@@ -217,12 +242,60 @@ class Enemy:
                     self.hp = hp
                     self.max_hp = max_hp
                     self.attack_power = attack_power
+    
+                def __init__(self, name="Thrall", hp=30, max_hp=30, attack_power=40):
+                    self.name = name
+                    self.hp = hp
+                    self.max_hp = max_hp
+                    self.attack_power = attack_power
+        
+                def __init__(self, name="Caged Madmen", hp=80, max_hp=80, attack_power=15):
+                    self.name = name
+                    self.hp = hp
+                    self.max_hp = max_hp
+                    self.attack_power = attack_power
+                
+                def __init__(self, name="Boreal Outrider Knight", hp=110, max_hp=110, attack_power=40):
+                    self.name = name
+                    self.hp = hp
+                    self.max_hp = max_hp
+                    self.attack_power = attack_power
+
+                def __init__(self, name="Hound-Rats", hp=20, max_hp=20, attack_power=20):
+                    self.name = name
+                    self.hp = hp
+                    self.max_hp = max_hp
+                    self.attack_power = attack_power
+
+                def __init__(self, name="Evangelist", hp=150, max_hp=150, attack_power=50):
+                    self.name = name
+                    self.hp = hp
+                    self.max_hp = max_hp
+                    self.attack_power = attack_power
+
+                def __init__(self, name="Hollow Manservants", hp=100, max_hp=100, attack_power=30):
+                    self.name = name
+                    self.hp = hp
+                    self.max_hp = max_hp
+                    self.attack_power = attack_power
+
+                def __init__(self, name="Giant Rat", hp=150, max_hp=150, attack_power=30):
+                    self.name = name
+                    self.hp = hp
+                    self.max_hp = max_hp
+                    self.attack_power = attack_power
+
+                def __init__(self, name="Skeleton", hp=30, max_hp=30, attack_power=20):
+                    self.name = name
+                    self.hp = hp
+                    self.max_hp = max_hp
+                    self.attack_power = attack_power
 
                 def is_alive(self):
                     return self.hp > 0
 
                 def take_damage(self, damage):
-                    self.hp = max(0, self.hp - damage)
+                    self.hp = max(0, self.hp - damage) 
 
 class Boss(Enemy):
                 def __init__(self, name="Iudex Gundyr", hp=120, max_hp=120, attack_power=15, heavy_attack_power=20):
@@ -259,10 +332,55 @@ class Second(Enemy):
                     return random.choice([self.attack_power + 8, self.heavy_attack_power, self.heavy_attack_power + 8])
 
 class Third(Enemy):
+                def __init__(self, name="Curse_Rotted Greatwood", hp=1000, max_hp=1000, attack_power=25, heavy_attack_power=40):
+                    super().__init__(name=name, hp=hp, max_hp=max_hp, attack_power=attack_power)
+                    self.heavy_attack_power = heavy_attack_power
+                    self.phase = 1
 
+                def update_phase(self):
+                    if self.hp <= self.max_hp // 2 and self.phase == 1:
+                        self.phase = 2
+                        print(f"\n{self.name} enters a more aggressive second phase!\n")
 
-    player = Player()
-Player,Enemy,Boss,Second,player
+                def choose_attack_damage(self):
+                    self.update_phase()
+                    if self.phase == 1:
+                        return random.choice([self.attack_power, self.attack_power + 6])
+                    return random.choice([self.attack_power + 8, self.heavy_attack_power, self.heavy_attack_power + 8])     
+
+class HKH(Enemy):              
+                def __init__(self, name="Holy Knight Hodrick", hp=500, max_hp=500, attack_power=87, heavy_attack_power=100):
+                    super().__init__(name=name, hp=hp, max_hp=max_hp, attack_power=attack_power)
+                    self.heavy_attack_power = heavy_attack_power
+                    self.phase = 1
+
+                def update_phase(self):
+                    if self.hp <= self.max_hp // 2 and self.phase == 1:
+                        self.phase = 2
+                        print(f"\n{self.name} enters a more aggressive second phase!\n")
+
+                def choose_attack_damage(self):
+                    self.update_phase()
+                    if self.phase == 1:
+                        return random.choice([self.attack_power, self.attack_power + 6])
+                    return random.choice([self.attack_power + 8, self.heavy_attack_power, self.heavy_attack_power + 8])     
+
+class FD (Enemy):              
+                def __init__(self, name="Fire Demon", hp=700, max_hp=700, attack_power=87, heavy_attack_power=90):
+                    super().__init__(name=name, hp=hp, max_hp=max_hp, attack_power=attack_power)
+                    self.heavy_attack_power = heavy_attack_power
+                    self.phase = 1
+
+                def update_phase(self):
+                    if self.hp <= self.max_hp // 2 and self.phase == 1:
+                        self.phase = 2
+                        print(f"\n{self.name} enters a more aggressive second phase!\n")
+
+                def choose_attack_damage(self):
+                    self.update_phase()
+                    if self.phase == 1:
+                        return random.choice([self.attack_power, self.attack_power + 6])
+                    return random.choice([self.attack_power + 8, self.heavy_attack_power, self.heavy_attack_power + 8])     
 
 
 def heal_player(heal_amount):
@@ -392,6 +510,46 @@ def soul_shop_at_firelink():
         player.hp = player.max_hp
         print("Your vitality increases.")
     print(f"Souls remaining: {player.souls}")
+    print("\n== Soul Shop ==")
+    print(f"Souls: {player.souls}")
+    print("1) Health Ring (+10 max Health) - 150 souls")
+    print("2) Lothric Knight Sword (+15 weapon attack) - 250 souls")
+    print("3) Lothric Knight Spear (+18 weapon attack) - 300 souls")
+    print("0) Cancel")
+
+    choice = input("Choose item: ").strip().lower()
+    if choice in ("0", "cancel"):
+        return
+
+    shop_items = {
+        "1": ("health ring", 150),
+        "health ring": ("health ring", 150),
+        "2": ("Lothric Knight Sword", 250),
+        "lothric knight sword": ("Lothric Knight Sword", 250),
+        "3": ("Lothric Knight Spear", 300),
+        "lothric knight spear": ("Lothric Knight Spear", 300),
+    }
+
+    item = shop_items.get(choice)
+    if item is None:
+        print("Invalid choice.")
+        return
+
+    item_name, cost = item
+    if player.souls < cost:
+        print("Not enough souls.")
+        return
+
+    player.souls -= cost
+
+    if item_name == "health ring":
+        player.max_hp += 10
+        player.hp = player.max_hp
+        print("Your vitality increases.")
+    else:
+        print(f"You purchased {item_name}.")
+        player.add_to_inventory(item_name)
+    print(f"Souls remaining: {player.souls}")
 
 
 def estus_flask():
@@ -443,10 +601,11 @@ stamina_costs = {
     "estus_flask": 0,
     "skip": 0,
 }
-
+   
 
 soul_rewards = {
-    "Hollow": 5,
+    "Hollow": 25,
+    "Thrall": 20,
     "Iudex Gundyr": 500,
     "Vordt of the Boreal Valley":500,
     "Lothric Knight 'Sword'":250,
@@ -454,6 +613,16 @@ soul_rewards = {
     "Puss of Man":350,
     "Winged Knight":150,
     "Starved hound":10,
+    "Curse_Rotted Greatwood":750,
+    "Cage Madmen":75,
+    "Boreal Outrider Knight":300,
+    "Hound-Rats":20,
+    "Evangelist":300,
+    "Skeleton":5,
+    "Giant Rat":300,
+    "Hollow Manservants":140,
+    "Holy Knight Hodrick":500,
+    "Fire Demon":500,
 }
 
 
@@ -531,30 +700,63 @@ def display_location():
         print(f"NPCs: {location['level_npc']}, {location['shop_npc']}")
         print("Talk to the Firekeeper to level up.")
         print("Talk to the Shrine Handmaid to shop.")
+    list_items_in_location()
     exits = ", ".join(location["exit"].keys())
     print(f"Exits: {exits}")
 
 
-def get_enemy_for_room(room_name):
-    encounter = rooms[room_name]["encounter"]
-    if encounter == "Hollow":
+def get_enemy_by_name(name):
+    if name == "Hollow":
         return Enemy("Hollow", 40, 40, 5)
-    if encounter == "Starved Hound":
+    if name == "Starved Hound":
         return Enemy("Starved Hound", 25, 25, 10)
-    if encounter == "Lothric Knight Sword":
-        return Enemy("Lothric Knight'Sword'",85,85,25)
-    if encounter == "Lothric Knight Spear":
+    if name == "Lothric Knight Sword":
+        return Enemy("Lothric Knight Sword",85,85,25)
+    if name == "Lothric Knight Spear":
         return Enemy("Lothric Knight Spear",75,75,30)
-    if encounter == "Puss of Man":
+    if name == "Puss of Man":
         return Enemy("Puss of Man",145,145,55)
-    if encounter == "Winged Knight":
+    if name == "Winged Knight":
         return Enemy("Winged Knight",100,100,40)
-    if encounter == "Iudex Gundyr":
+    if name == "Thrall":
+        return Enemy("Thrall",30,30,40)
+    if name == "Caged Madmen":
+        return Enemy("Caged Madmen",80,80,15)
+    if name == "Boreal Outrider Knight":
+        return Enemy("Boreal Outrider Knight",110,110,40)
+    if name == "Hound-Rats":
+        return Enemy("Hound-Rats",20,20,20)
+    if name == "Evangelist":
+        return Enemy("Evangelist",150,150,50)
+    if name == "Hollow Manservants":
+        return Enemy("Hollow Manservants",100,100,30)
+    if name == "Skeleton":
+        return Enemy("Skeleton",150,150,20)
+    if name == "Giant Rat":
+        return Enemy("Giant Rat",150,150,30)
+    if name == "Iudex Gundyr":
         return Boss()
-    if encounter == "Vordt of the Boreal Valley":
+    if name == "Vordt of the Boreal Valley":
         return Second()
-    if encounter == "Curse-Rotted Greatwood":
-        return None
+    if name == "Curse-Rotted Greatwood":
+        return Third()
+    if name == "Holy Knight Hodrick":
+        return HKH()
+    if name == "Fire Demon":
+        return FD()
+    return None
+
+
+def get_enemies_for_room(room_name):
+    encounter = rooms[room_name].get("encounters", rooms[room_name].get("encounter"))
+    if encounter is None:
+        return []
+    if isinstance(encounter, str):
+        enemy = get_enemy_by_name(encounter)
+        return [enemy] if enemy else []
+    if isinstance(encounter, list):
+        return [enemy for enemy in (get_enemy_by_name(name) for name in encounter) if enemy]
+    return []
 
 
 def reward_souls_for_enemy(opponent):
@@ -563,11 +765,45 @@ def reward_souls_for_enemy(opponent):
         add_souls(reward)
 
 
-def start_combat(opponent):
-    print(f"\nA {opponent.name} approaches!\n")
+def loot_for_enemy(opponent):
+    enemy_loot = {
+        "Lothric Knight Sword": ["Lothric Knight Sword"],
+        "Lothric Knight Spear": ["Lothric Knight Spear"],
+        "Puss of Man": ["Estus Shard"],
+    }
+    return enemy_loot.get(opponent.name, [])
+
+
+def choose_combat_target(enemies):
+    alive_enemies = [enemy for enemy in enemies if enemy.is_alive()]
+    if len(alive_enemies) == 1:
+        return alive_enemies[0]
+
+    print("\nChoose your target:")
+    for index, enemy in enumerate(alive_enemies, start=1):
+        print(f"{index}) {enemy.name} ({enemy.hp}/{enemy.max_hp} HP)")
+
+    while True:
+        choice = input("Target: ").strip()
+        if choice.isdigit():
+            choice_num = int(choice)
+            if 1 <= choice_num <= len(alive_enemies):
+                return alive_enemies[choice_num - 1]
+        print("Invalid target.")
+
+
+def start_combat(opponents):
+    alive_names = ", ".join(enemy.name for enemy in opponents)
+    if len(opponents) == 1:
+        print(f"\nA {alive_names} approaches!\n")
+    else:
+        print(f"\nEnemies approach: {alive_names}\n")
+
     defending = False
 
-    while player.is_alive() and opponent.is_alive():
+    while player.is_alive() and any(enemy.is_alive() for enemy in opponents):
+        alive_enemies = [enemy for enemy in opponents if enemy.is_alive()]
+
         print(
             f"{player.name} (Lv {player.level}): {player.hp}/{player.max_hp} HP | "
             f"Stamina: {player.stamina}/{player.max_stamina} | "
@@ -575,22 +811,31 @@ def start_combat(opponent):
             f"Souls: {player.souls}"
         )
         print(f"Stamina Bar: {format_bar(player.stamina, player.max_stamina)}")
-        print(f"{opponent.name}: {opponent.hp}/{opponent.max_hp} HP")
+        for enemy in alive_enemies:
+            print(f"{enemy.name}: {enemy.hp}/{enemy.max_hp} HP")
         print("1) Attack  2) Heavy Attack  3) Block  4) Roll  5) Estus  0) Skip")
         choice = input("Choose action: ").strip().lower()
 
         if choice in ("1", "attack"):
             if not spend_stamina_for_action("attack"):
                 continue
-            damage = player.attack_power
-            opponent.take_damage(damage)
-            print(f"You deal {damage} damage.")
+            target = choose_combat_target(alive_enemies)
+            damage = player.total_attack_power()
+            target.take_damage(damage)
+            print(f"You deal {damage} damage to {target.name}.")
+            if not target.is_alive():
+                print(f"{target.name} has been defeated!\n")
+                reward_souls_for_enemy(target)
         elif choice in ("2", "heavy attack", "heavy"):
             if not spend_stamina_for_action("heavy_attack"):
                 continue
-            damage = player.attack_power + (15 if isinstance(opponent, Boss) else 10)
-            opponent.take_damage(damage)
-            print(f"You unleash a heavy attack for {damage} damage.")
+            target = choose_combat_target(alive_enemies)
+            damage = player.attack_power + (15 if isinstance(target, Boss) else 10)
+            target.take_damage(damage)
+            print(f"You unleash a heavy attack on {target.name} for {damage} damage.")
+            if not target.is_alive():
+                print(f"{target.name} has been defeated!\n")
+                reward_souls_for_enemy(target)
         elif choice in ("3", "block"):
             if not spend_stamina_for_action("block"):
                 continue
@@ -611,19 +856,19 @@ def start_combat(opponent):
             print("Invalid choice.")
             continue
 
-        if not opponent.is_alive():
-            print(f"{opponent.name} has been defeated!\n")
-            reward_souls_for_enemy(opponent)
+        if not any(enemy.is_alive() for enemy in opponents):
             return "win"
 
-        enemy_damage = opponent.choose_attack_damage() if isinstance(opponent, Boss) else opponent.attack_power
-        if defending:
-            enemy_damage = max(0, enemy_damage - 10)
-            defending = False
+        for enemy in [enemy for enemy in opponents if enemy.is_alive()]:
+            enemy_damage = enemy.choose_attack_damage() if isinstance(enemy, Boss) else enemy.attack_power
+            if defending:
+                enemy_damage = max(0, enemy_damage - 10)
+            player.take_damage(enemy_damage)
+            print(f"{enemy.name} hits you for {enemy_damage} damage.")
+            if not player.is_alive():
+                break
 
-        player.take_damage(enemy_damage)
-        print(f"{opponent.name} hits you for {enemy_damage} damage.")
-
+        defending = False
         player.recover_stamina()
 
     if not player.is_alive():
@@ -691,7 +936,7 @@ def respawn_at_last_bonfire():
 
     restore_player_resources()
     current_location = last_bonfire
-    discover_current_bonfire()
+    discover_current_bonfire
     defeated_enemies = set()
     print(f"\nYou awaken at the bonfire: {last_bonfire}")
     print("Health, estus, and stamina restored.")
@@ -710,9 +955,20 @@ def recover_stamina_after_turn():
     player.recover_stamina(15)
 
 
+def list_items_in_location():
+    location_items = rooms[current_location].get("items", [])
+    if location_items:
+        print("You see the following items:")
+        for item in location_items:
+            print(f"- {item}")
+
+
 def get_exploration_prompt():
     options = []
     options.extend(rooms[current_location]["exit"].keys())
+    if rooms[current_location].get("items"):
+        options.append("pickup")
+    options.extend(["inventory", "use"])
     if rooms[current_location].get("bonfire"):
         options.append("rest")
         if len(discovered_bonfires) > 1:
@@ -723,19 +979,101 @@ def get_exploration_prompt():
     return f"Choose action ({'/'.join(options)}): "
 
 
+def pickup_item():
+    location_items = rooms[current_location].get("items", [])
+    if not location_items:
+        print("There is nothing to pick up here.")
+        return
+    print("Items available to pick up:")
+    for index, item in enumerate(location_items, start=1):
+        print(f"{index}) {item}")
+    print("0) Cancel")
+    choice = input("Choose item to pick up: ").strip().lower()
+    if choice in ("0", "cancel"):
+        return
+    if choice.isdigit():
+        index = int(choice) - 1
+        if 0 <= index < len(location_items):
+            item_name = location_items.pop(index)
+            player.add_to_inventory(item_name)
+            print(f"You picked up {item_name}.")
+            return
+    print("Invalid choice.")
+
+
+def use_item():
+    if not player.inventory:
+        print("Your inventory is empty.")
+        return
+    print("Inventory:")
+    for index, item in enumerate(player.inventory, start=1):
+        print(f"{index}) {item}")
+    print("0) Cancel")
+    choice = input("Choose item to use: ").strip().lower()
+    if choice in ("0", "cancel"):
+        return
+    if choice.isdigit():
+        index = int(choice) - 1
+        if 0 <= index < len(player.inventory):
+            item_name = player.inventory[index]
+            handle_item_use(item_name)
+            return
+    print("Invalid choice.")
+
+
+def handle_item_use(item_name):
+    item = player.remove_from_inventory(item_name)
+    if item is None:
+        print("Item not found in inventory.")
+        return
+    item_lower = item.lower()
+    if item_lower == "estus shard":
+        player.max_estus_flask += 1
+        player.estus_flask += 1
+        print("You attune the Estus Shard. Estus capacity increased by 1.")
+    elif item_lower == "health ring":
+        player.max_hp += 10
+        player.hp = min(player.hp + 10, player.max_hp)
+        print("Your vitality grows stronger thanks to the ring.")
+    elif item_lower in ("lothric knight sword", "lothric knight spear"):
+        weapon_stats = {
+            "Lothric Knight Sword": 15,
+            "Lothric Knight Spear": 18,
+        }
+        if player.equipped_weapon.lower() == item_lower:
+            print(f"{item} is already equipped.")
+            player.add_to_inventory(item)
+            return
+        player.equip_weapon(item, weapon_stats)
+        print(f"You equip the {item}. Attack power increased.")
+    else:
+        print(f"You use the {item}, but nothing happens.")
+
+
+def display_inventory():
+    print("\n== Inventory ==")
+    print(f"Equipped Weapon: {player.equipped_weapon} (+{player.weapon_attack} attack)")
+    if player.inventory:
+        for item in player.inventory:
+            print(f"- {item}")
+    else:
+        print("(empty)")
+
+
 def run_game():
     reset_game_state()
-    respawn_at_last_bonfire()
+    respawn_at_last_bonfire
 
     while player.is_alive():
         recover_dropped_souls()
+        print(f"DEBUG current_location={current_location!r} type={type(current_location)} rooms_type={type(rooms)}")
         discover_current_bonfire()
         display_location()
 
         if current_location not in defeated_enemies and current_location not in defeated_boss_rooms:
-            enemy = get_enemy_for_room(current_location)
-            if enemy is not None:
-                combat_result = start_combat(enemy)
+            enemies = get_enemies_for_room(current_location)
+            if enemies:
+                combat_result = start_combat(enemies)
                 if combat_result == "respawn":
                     respawn_at_last_bonfire()
                     continue
@@ -744,13 +1082,18 @@ def run_game():
                 if combat_result == "quit":
                     return "quit"
                 defeated_enemies.add(current_location)
-                if isinstance(enemy, Boss):
+                if any(isinstance(enemy, Boss) for enemy in enemies):
                     defeated_boss_rooms.add(current_location)
                     print("\nHEIR OF FIRE DESTROYED")
-                if isinstance(enemy, Second):
-                    print("\nHEIR OF FIRE DESTROYED")
-                    defeated_boss_rooms.add(current_location)
-                    return "quit"
+                loot_items = []
+                for enemy in enemies:
+                    if not enemy.is_alive():
+                        loot_items.extend(loot_for_enemy(enemy))
+                if loot_items:
+                    rooms[current_location].setdefault("items", []).extend(loot_items)
+                    print("You found loot from defeated enemies:")
+                    for loot in loot_items:
+                        print(f"- {loot}")
 
         choice = input(get_exploration_prompt()).strip().lower()
         if choice == "quit":
@@ -763,6 +1106,15 @@ def run_game():
         if choice == "travel" and rooms[current_location].get("bonfire"):
             travel_between_bonfires()
             recover_stamina_after_turn()
+            continue
+        if choice == "pickup":
+            pickup_item()
+            continue
+        if choice == "inventory":
+            display_inventory()
+            continue
+        if choice == "use":
+            use_item()
             continue
         if choice == "level" and current_location == "Firelink Shrine":
             level_up_at_firelink()
@@ -788,7 +1140,7 @@ def run_game():
         print("Invalid choice.")
 
     return "restart"
-                                       
+
 
 while True:
     outcome = run_game()
